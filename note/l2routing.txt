@@ -1,0 +1,107 @@
+=>Route
+
+routes > web.php (or) routes > api.php
+
+
+=>Avaliable Router Methods
+
+Route::get(route_uri,callbackfunction);
+Route::post(route_uri,callbackfunction);
+Route::put(route_uri,callbackfunction);
+Route::patch(route_uri,callbackfunction);
+Route::delete(route_uri,callbackfunction);
+Route::options(route_uri,callbackfunction);
+
+=>Basic Routing
+
+*single route = single page
+
+Route::get("/",function(){
+	return view('filename')
+});
+
+Route::get("/",function(){
+	return "Save Myanmar";
+});
+
+Route::get("/sayar",function(){
+	return "Hay,Sayar Nay Kaung Lar ??";
+});
+
+*error
+Route::get("/",()=>{
+	return "Save Myanmar";
+});
+
+*error
+Route::get("/","Save Myanmar");
+
+Route::get("sayhi",function(){
+	return "Hi Min Ga Lar Par";
+});
+
+Route::get("about",function(){
+	return view("aboutme");
+});
+
+(or)
+
+Route::view("about","aboutme");
+
+Route::get('/about/company',function(){
+    return view("aboutcompany");
+});
+
+(or)
+
+=Syntax
+Route::view(url,filename);
+
+Route::view('about/company',"aboutcompany");
+
+----------------------------------
+
+=>Redirect Routing
+
+Syntax
+Route::get(url,function(){
+	return redirect(routename);
+});
+
+Route::get('contact',function(){
+	return redirect('about');
+});
+
+(or)
+
+=Syntax
+Route::redirect(url,routename);
+
+Route::redirect('contact',"about/company");
+
+--------------------------------------
+
+=>Route with Parameter 
+
+=Single Parameter
+
+Route::get('about/company/{staff}',function($staff){
+	return view('aboutcompanystaff',['sf'=>$staff]);
+});
+
+
+
+=Multi Parameter
+
+Route::get('about/company/{staff}/{city}',function($staff,$city){
+	return view('aboutcompanystaffbycity',['sf'=>$staff,'ct'=>$city]);
+});
+
+
+
+=>Naming Route
+Route::get('profile',function(){
+	return view('profileme');
+})->name('profiles');
+
+-----------------------------

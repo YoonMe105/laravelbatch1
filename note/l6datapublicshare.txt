@@ -1,0 +1,25 @@
+=>Public Data Passing
+
+app > Providers > AppServiceProvider.php
+
+
+
+
+
+
+use Illuminate\Support\Facades\View;
+
+public function boot()
+    {
+        // view()->composer('*',function($view){
+        //     $getyear = date('Y');  // 2023
+        //     $gettoday = date("d/M/Y"); // 17/Jun/2023
+        //     $view->with('getyear',$getyear)->with('gettoday',$gettoday);
+        // });
+
+        View::composer('*',function($view){
+            $getyear = date('Y');  // 2023
+            $gettoday = date("d/M/Y"); // 17/Jun/2023
+            $view->with('getyear',$getyear)->with('gettoday',$gettoday);
+        });
+    }

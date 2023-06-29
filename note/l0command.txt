@@ -1,0 +1,62 @@
+=>Commands
+
+
+php artisan
+
+=>server run
+php artisan server
+
+
+
+=>Check route list
+php artisan route:list // a to z ASC
+php artisan route:list -r // z to a DSEC
+
+=>Check route list by path
+php artisan route:list --path=staff
+php artisan route:list --path=staff -r
+php artisan route:list --path=student 
+
+
+=>Check route list by method
+php artisan route:list --method=get
+php artisan route:list --method=get -r
+php artisan route:list --method=post
+
+
+=>List all files from database > migration files
+php artisan migrate:status
+
+
+=>Check migration status
+php artisan migrate:status
+
+
+=>Undo migration by step=tablecount (selected table count to local)
+php artisan migrate:rollback --step=2
+
+
+=>Check the list of undo before rollback table list
+php artisan migrate:rollback --pretend
+
+=>Delete all datas
+php artisan migrate:reset
+
+=>Delete all datas (make both auto rollback & auto migrate / selected table count to local)
+php artisan migrate:refresh --step=2
+
+
+
+=>Add New Columns
+php artisan make:migration add_city_to_shoppers_table --table="shoppers"
+
+$table->string('city'); to add_city_to_shoppers_table
+php artisan migrate
+
+
+=>Sort Column
+php artisan migrate:rollback --pretend
+php artisan migrate:rollback 
+
+
+$table->string('city')->after('phonenumber'); to add_city_to_shoppers_table
