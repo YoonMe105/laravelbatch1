@@ -6,6 +6,7 @@ use App\Http\Controllers\studentsController;
 use App\Http\Controllers\staffsController;
 use App\Http\Controllers\dashboardsController;
 use App\Http\Controllers\membersController;
+use Illuminate\Support\Facades\DB;
 
 
 /*
@@ -117,3 +118,35 @@ Route::get('employees/update',[employeesController::class,'update'])->name('empl
 Route::get('/dashboards',[dashboardsController::class,'index'])->name('dashboards.index');
 
 Route::get('/members',[membersController::class,'index'])->name('membersController.index');
+
+
+// =>Data Insert from Route
+
+// use Illuminate/Support/Facades/DB;
+Route::get('types/insert',function(){
+	DB::insert("INSERT INTO types(name) value(?)",["pdf"]);
+	return "Successfully Registered";
+});
+
+// Route::get('types/read',function(){
+// 	$results = DB::select("SELECT * FROM types");
+// 	return $results;
+// });
+
+// Route::get('types/read',function(){
+// 	$results = DB::select("SELECT * FROM types");
+// 	return var_dump($results);
+// });
+
+// Route::get('types/read',function(){
+// 	$results = DB::select("SELECT * FROM types");
+	
+// 	foreach($results as $type){
+// 		echo $type->name ."<br/>";
+// 	}
+// });
+
+Route::get('types/read',function(){
+	$result = DB::select("SELECT * FROM types WHERE id=?",[1]);
+	return $result;
+});

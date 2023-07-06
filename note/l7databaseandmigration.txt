@@ -55,6 +55,8 @@ $table->bigIncrements('id');
 $table->increments('id');
 $table->bigInteger('id');
 $table->unsignedInteger('id'); // only positive integer
+$table->unsignedBigInteger('id'); // only positive integer
+$table->tinyInteger('id'); 
 $table->smallInteger('votes'); 
 $table->binary('photo');
 $table->boolean('confirmed');
@@ -67,7 +69,8 @@ $table->longText('post');
 $table->time('bookingtime');
 $table->date('created_at');
 $table->year('birthyear');
-$table->timestamps();
+$table->timestamps();   //system auto
+$table->timestamp();  //custom
 $table->decimal('amount',precision=8,scale=2);
 $table->float('measure',precision=8,scale=2);
 $table->enum('payment',['visa','mpu','cod','kpay','wave']);
@@ -104,7 +107,7 @@ php artisan make:migration create_shoppers_table --create="shoppers"
 =>Delete all datas (make both auto rollback & auto migrate)
 php artisan migrate:refresh
 
---
+
 
 =>Delete all datas (make both auto rollback & auto migrate / selected table count to local)
 php artisan migrate:refresh --step=2
@@ -126,6 +129,7 @@ $table->string('city')->after('phonenumber'); //to add_city_to_shoppers_table
 
 
 
+--
 =>Up(work when made migrate) Vs Down(work when made rollback)
 
 php artisan make:migration add_city_to_employees_table --table="employees"
@@ -139,7 +143,7 @@ $table->string('city')->after('phonenumber');
 $table->dropColumn('city');
 
 php artisan migrate
-php artisan migrate:status
+php artisan migrate:statusc
 php artisan migrate:rollback --pretend
 php artisan migrate:rollback
 php artisan migrate
@@ -217,9 +221,9 @@ php artisan migrate
 =>Rename Table rename(from,to)
 php artisan make:migration rename_employees_to_customers_table --table=employees
 =>up
-$table->rename('employees','customers');
+Schema::rename('employees','customers');
 =>down
-$table->rename('customers','employees');
+Schema::rename('customers','employees');
 
 php artisan migrate
 php artisan migrate:status
@@ -227,3 +231,117 @@ php artisan migrate:rollback --pretend
 php artisan migrate:rollback
 php artisan migrate
 
+
+=>Default Value
+
+php artisan make:migration create_books_table --create="books"
+
+Schema::create('books', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('title');
+            $table->tinyInteger('status')->default('1');
+            $table->enum('copyright',['0','1'])->default('0');
+            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP')); //timestamp not include s
+            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')); //timestamp not include s
+        });
+
+
+php artisan make:migration create_profiles_table --create="profiles"
+
+Schema::create('profiles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('givenname',100);
+            $table->string('familyname',100);
+            $table->enum('gender',array('male','female','unisex'))->default('female');
+            $table->text('bio');
+            $table->unsignedBigInteger('user_id');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
+        });
+
+
+
+
+=>Creating Indexes
+
+$table->string('email')->unique();
+
+php artisan make:migration create_authors_table --create="authors"
+php artisan make:migration create_types_table --create="types"
+php artisan make:migration create_posts_table --create="posts"
+
+
+=Foregin Key Constraints
+
+*Method 1
+$table->unsignedBigInteger('user_id');
+$table()->foreign('users_id')->references('id')->on('users');
+
+*Method 2
+$table()->foreignId('user_id')->constrained('users');
+
+
+Schema::create('authors', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+
+Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+
+Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('title')->unique();
+            $table->text('description');
+
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+
+            $table->foreignId('author_id')->constrained('authors')->onUpdate('cascade')->onDelete('cascade');
+
+            $table->year('year');
+
+            $table->unsignedBigInteger('type_id');
+            $table->foreign('type_id')->references('id')->on('types')->onUpdate('cascade')->onDelete('cascade');
+
+            $table->timestamps();
+        });
+
+
+=>Data Insert From Route
+
+in web.php
+// use Illuminate/Support/Facades/DB;
+Route::get('types/insert',function(){
+    DB::insert("INSERT INTO types(name) value(?)",["book"]);
+    return "Successfully Inserted";
+});
+
+Route::get('types/read',function(){
+    $results = DB::select("SELECT * FROM types");
+    return $results;
+});
+
+Route::get('types/read',function(){
+    $results = DB::select("SELECT * FROM types");
+    return var_dump($results);
+});
+
+Route::get('types/read',function(){
+    $results = DB::select("SELECT * FROM types");
+    
+    foreach($results as $type){
+        echo $type->name ."<br/>";
+    }
+});
+
+Route::get('types/read',function(){
+    $result = DB::select("SELECT * FROM types WHERE id=?",[3]);
+    return $result;
+});
