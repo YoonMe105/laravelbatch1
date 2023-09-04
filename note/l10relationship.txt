@@ -1,0 +1,389 @@
+// => Eloquent Relationships
+
+// =One to One
+
+= In Model (User.php)
+
+protected $table = 'users';
+   protected $primarykey = "id";
+
+public function article(){
+        // Method 1
+        // return $this->hasOne("App\Models\Article");
+
+        // Method 2
+        return $this->hasOne("Article::class");
+
+}
+
+= In Model (Article.php)
+
+public function user(){
+        //return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
+
+}
+
+
+
+=In Web
+
+Route::get('users/{id}/article',function($id){
+
+	$article = User::findorFail($id)->article->title;
+	// $article = User::findorFail($id)->article->description;
+	// $article = User::findorFail($id)->article->rating;
+
+
+	return $article;
+});
+
+
+Route::get('articles/{id}/user',function($id){
+
+        // $article = Article::findOrFail($id)->user->name;
+        $article = Article::findOrFail($id)->user->email;
+
+        return $article;
+});
+
+-----------------------------------------------------------
+
+
+// =One to Many
+
+
+=In User.php
+
+public function articles(){
+        return $this->hasMany(Article::class);
+    }
+
+
+
+=In Web
+
+Route::get('articles/{id}/byuser',function($id){
+
+        // $user = User::findOrFail($id);
+        // return $user->articles;
+
+        $user = User::findOrFail($id);
+
+        foreach($user->articles as $article){
+                echo $article->title."<br/>";
+        }
+
+});
+
+-----------------------------------------------------------
+
+
+// = Many to Many
+
+=Migration
+
+php artisan make:migration create_roles_table
+php artisan make:model Role
+(or)
+php artisan make:migration create_roles_table --create="roles"
+php artisan make:model Role
+(VS)
+php artisan make:model Role -m
+
+$table->string('name');
+
+
+=Obey by Laravel Naming Conversion
+php artisan make:migration create_roles_users_table --create="role_user"
+$table->unsignedBigInteger('user_id');
+$table->unsignedBigInteger('role_id');
+
+php artisan migrate:status
+php artisan migrate
+
+
+=In User.php
+public function roles(){
+        return $this->belongsToMany(Role::class);
+}
+
+
+= In Web
+
+Route::get('user/{id}/role',function($id){
+
+        // $user = User::findOrFail($id);
+        // return $user->roles;
+
+        // $user = User::findOrFail($id);
+        // foreach($user->roles as $role){
+        //      echo $role->name."<br/>";
+        // }
+
+        $user = User::findOrFail($id)->roles()->get();
+        return $user;
+});
+
+-------
+
+=>Web
+
+Route::get('users/{id}/rolecreatedate',function($id){
+
+        $user = User::findOrFail($id);
+        
+        foreach($user->rolecreatedate as $role){
+                echo $role->pivot->created_at."<br/>";
+        }
+});
+
+=In User.php
+// belongsToMany with withPivot
+    public function rolecreateddate(){
+        // return $this->belongsToMany(Role::class)->withPivot('created_at');  // Error Base table or view not found : role_user doesn't have
+        return $this->belongsToMany(Role::class,'userroles','user_id','role_id')->withPivot('created_at');  // Error Base table or view not found : role_user doesn't have
+    }
+
+
+=Migration
+php artisan migrate::rollback --pretend
+php artisan migrate::rollback 
+
+php artisan make:migration create_users_roles_table --create="role_user"  // must be role_user
+$table->integer('user_id');
+$table->integer('role_id');
+
+php artisan migrate
+
+
+=Migration
+php artisan migrate::rollback --pretend
+php artisan migrate::rollback 
+
+php artisan make:migration create_users_roles_table --create="userroles"  // must be role_user
+$table->integer('user_id');
+$table->integer('role_id');
+
+php artisan migrate
+-----------------------------------------------------------
+
+// = Has Many Through Relationship
+
+=Migration
+php artisan make:model Gender -m 
+$table->string('name');
+
+=Add Column
+php artisan make:migration add_gender_id_to_users_table --table=users
+=up by sort
+$table->integer('gender_id')->after('password');
+=down 
+$table->dropColumn('gender_id');
+
+php artisan migrate:status
+php artisan migrate
+
+
+=In Gender.php
+protected $table = 'genders';
+protected $primaryKey = 'id';
+
+public function articles(){
+        // hasManyThrough(related,through)
+        return $this->hasManyThrough(Article::class,User::class);
+
+        // hasManyThrough(related,through,firstKey,secondPivotKey)
+        return $this->hasManyThrough(Article::class,User::class,'gender_id','user_id');
+}
+
+
+=In Web
+
+Route::get('gender/{id}/article',function($id){
+
+        $gender = Gender::findOrFail($id);
+
+        foreach($gender->articles as $article){
+                echo $article->title."<br/>";
+        }
+});
+
+-----------------------------------------------------------
+
+=>Polymorphic Relationship
+
+
+=Migration
+php artisan make:model Photo -m 
+$table->string('path');
+$table->integer('imageable_id')->unsigned();
+$table->string('imageable_type');
+
+
+php artisan migrate:status
+php artisan migrate
+
+
+
+=In Article.php
+public function photos(){
+        // morphMany(relatedtable,name)
+        return $this->morphMany(Photo::class,'imageable');  // use imageable cuz of imageable_id,imageable_type
+    }
+
+=In User.php
+public function photos(){
+        // morphMany(relatedtable,name)
+        return $this->morphMany(Photo::class,'imageable');  // use imageable cuz of imageable_id,imageable_type
+    }
+    
+
+=In Web
+
+Route::get()
+
+
+
+-------------------
+
+// = Reverse Thinking
+
+=In Photo.php
+
+public function imageable(){
+        // morphTo()
+        return $this->morphTo();
+    }
+
+
+= In Web
+Route::get('photos/{id}/result',function($id){
+
+        $photo = Photo::findOrFail($id);
+        // return $photo->imageable;
+        return $photo->imageable->title;
+
+        // $photo = Photo::findOrFail($id);
+        // return $photo->photoable;
+
+});
+
+-------------------
+
+=Migration
+php artisan make:model Comment -m 
+$table->string('message');
+$table->integer('user_id')->unsigned();
+$table->integer('commentable_id')->unsigned();
+$table->string('commentable_type');
+
+
+php artisan migrate:status
+php artisan migrate
+
+
+
+=In Article.php
+public function photos(){
+        // morphMany(relatedtable,name)
+        return $this->morphMany(Photo::class,'imageable');  // use imageable cuz of imageable_id,imageable_type
+    }
+
+=In User.php
+public function comments(){
+        // morphMany(relatedtable,name)
+        return $this->morphMany(Comment::class,'commentable');  // use imageable cuz of imageable_id,imageable_type
+    }
+    
+=In Comment.php
+public function commentable(){
+        // morphTo()
+        return $this->morphTo();
+    }
+
+=In Web
+Route::get('articles/{id}/comment',function($id){
+        $article = Article::findOrFail($id);
+
+        foreach($article->comments as $comment){
+                echo $comment->message."<br/>";
+        }
+});
+
+-------------------
+
+// = Polymorphic Relationship Many to Many
+
+// =Migration
+php artisan make:model Item -m
+$table->string('name');
+
+php artisan make:model Tag -m
+$table->string('name');
+
+php artisan make:model Taggable -m
+$table->integer('tag_id');
+$table->integer('taggable_id');
+$table->string('taggable_type');
+
+
+php artisan migrate:status
+php artisan migrate
+
+= In Article.php
+public function tags(){
+        // morphToMany(relatedtable,name)
+        return $this->morphToMany(Tag::class,"taggable");
+    }
+
+
+=In Item.php
+public function tags(){
+        // morphToMany(relatedtable,name)
+        return $this->morphToMany(Tag::class,"taggable");
+    }
+
+=In Tag.php
+public function articles(){
+        // morphedByMany(relatedtable,name)
+        return $this->morphedByMany(Article::class,"taggable");
+    }
+
+public function items(){
+        // morphedByMany(relatedtable,name)
+        return $this->morphedByMany(Item::class,"taggable");
+    }
+
+= In Web
+
+Route::get('items/{id}/tag',function($id){
+
+        $items = Item::findOrFail($id);
+        // return $items->tags;
+
+        foreach($items->tags as $tag){
+                echo $tag->name."<br/>";
+        }
+});
+
+Route::get('tags/{id}/article',function($id){
+
+        $tag = Tag::findOrFail($id);
+
+        foreach($tag->articles as $article){
+                echo $article->title."<br/>";
+        }
+});
+
+Route::get('tags/{id}/item',function($id){
+
+        $tag = Tag::findOrFail($id);
+
+        foreach($tag->items as $item){
+                echo $item->name."<br/>";
+        }
+
+});
+
+-------------------

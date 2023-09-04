@@ -60,3 +60,11 @@ php artisan migrate:rollback
 
 
 $table->string('city')->after('phonenumber'); to add_city_to_shoppers_table
+
+=>whereColumn('column1','column2');  // compare and result same value
+=>whereColumn('column1','comparison operator','column2');  // compare and result same value
+=>whereColumn([['column1','column2'],['column1','column2']]);  // compare and result same value
+
+
+
+***Model is controlling the table

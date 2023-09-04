@@ -1,0 +1,321 @@
+22.08.2023
+=>Model
+=>Database Eloquent ORM (Object-Relational Mapper)
+
+=>Generate Model Class (Model typically live in the app/Models directory and extends Illuminate\Database\Eloquent\Model )
+=Command Line ( Just Model )
+php artisan make:model Post(modelname should use Captial letter) 
+
+=Command Line ( Model + Migration )
+php artisan make:model Article --migration
+or
+php artisan make:model Article -m
+
+---------------
+
+=>Inspecting Models to Database Table
+php artisan model:show Article
+
+---------------
+
+=Useful Keywords in Model
+
+=Table Name (**Important)
+protected $table = "articles";
+
+=Customize Timestamp
+const CREATED_AT = "created_date";
+const UPDATED_AT = "updated_date";
+
+
+=Primary Keys
+protected $primaryKey = "id";
+
+php artisan migrate:status
+php artisan migrate
+
+php artisan model:show Article
+
+--------------
+
+=>Retrieving Datas By Model (Single / Multi Datas)
+
+// use App\Models\Article;
+Route::get('articles/read',function(){
+
+	// $articles = Article::all(); // all() pull all data from article table
+	// return $articles;
+
+	// $articles = Article::all();
+	// return "$articles";
+
+	// $articles = Article::all();
+	// var_dump($articles);
+
+	foreach($articles as $article){
+		echo "$article->title <br/> $article->description <hr/>";
+	}
+});
+
+
+=>Retrieve a data by primary key from model
+$article = Article::find(1);  // find() is only return 1 result and connected with $primaryKey
+return $article;
+
+=Not Found Exception
+$article = Article::findorFail(20); 
+return $article;  // 404 NOT FOUND
+
+=>Retrieving Data matching by where method
+// $article = Article::where('user_id',2)->get();  
+// return $article;
+
+// = asc/desc
+	// $article = Article::where('user_id',1)->orderBy('id','desc')->get();  // 5 to 1
+	// $article = Article::where('user_id',1)->orderByDesc('id')->get();  // 5 to 1
+	// return $article;
+
+	// $article = Article::where('user_id',2)->orderBy('id','asc')->take(3)->get(); 
+	// $article = Article::where('user_id',2)->take(3)->orderBy('id','asc')->get(); 
+	// $article = Article::where('user_id',2)->orderBy('id','asc')->limit(3)->get(); 
+	// return $article;
+
+	// $article = Article::where('user_id',2)->first(); 
+	// return $article;
+
+	// $article = Article::where('id',">",3)->get(); 
+	// return $article;
+
+	// $article = Article::where('d',2)->select('user_id','title','description')->first(); 
+	// return $article;
+
+	// $article = Article::where('id',2)->plunk('description');  //array
+	// $article = Article::where('id',2)->plunk('description','id'); // object
+	// return $article;
+
+	// $article = Article::firstWhere('user_id',2); 
+	// return $article;
+
+	// =Not Found Exception
+	// $articles = Article::where('id','>',5)->get(); 
+	// return $articles;
+
+	// $article = Article::where('id','>',50)->firstOrFail(); 
+	// return $article;  // 404 NOT FOUND 
+
+	// firstOr(callback function)
+	$article = Article::where('user_id',3)->firstOr(function(){
+		return "Hello sir there is no result for User ID 3";
+	});
+	return $article;
+
+
+// =>Retrieving Aggregates
+
+Route::get('articles/aggregates',function(){
+	
+	$data = [
+		['price'=>100],
+		['price'=>200],
+		['price'=>300],
+		['price'=>400]
+	];
+
+	// var_dump($data);
+	// echo "<br/>";
+	// var_dump(collect($data));
+
+	// dd(
+	// 	$data,
+	// 	collect($data)
+	// );
+
+	// return collect($data)->count();  // 4
+	// return collect($data)->max();  // {"price":400}
+
+	// return collect($data)->max(function($num){
+	// 	return $num['price'];
+	// }); 
+	
+	// return collect($data)->min();  // {"price":100}
+
+	// return collect($data)->min(function($num){
+	// 	return $num['price'];
+	// });   // 100
+
+	// return collect($data)->average(function($num){
+	// 	return $num['price'];
+	// });  // 250
+	
+	// return collect($data)->avg(function($num){
+	// 	return $num['price'];
+	// });  // 250
+
+	// return collect($data)->sum(function($num){
+	// 	return $num['price'];
+	// });  // 1000
+
+	// $articles = Article::all()->count();
+	// return $articles;  // 10
+
+	// $articles = Article::where('user_id',1)->count();
+	// return $articles;   // 5
+
+	// $articles = Article::where('user_id',2)->max('rating');
+	// return $articles;   // 4
+
+	// $articles = Article::where('user_id',1)->min('rating');
+	// return $articles;  // 2
+
+	// $articles = Article::where('user_id',1)->average('rating');
+	// $articles = Article::where('user_id',1)->avg('rating');
+	// return $articles;   // 3.6000
+
+	$articles = Article::where('user_id',1)->sum('rating');
+	return $articles;   // 18
+
+});
+
+
+// ---------------------------------------
+
+
+// => Retrieving or Creating Data to Model
+
+Route::get('articles/create',function(){
+
+	// $article = Article::firstOrCreate([
+	// 	'title'=>'this is new article 1'
+	// ]);
+	// return "Retrieve Data or Insert $article";
+
+	// $article = Article::firstOrCreate([
+	// 	'title'=>'this is new article 11',  // 11 to 16
+	// 	'description'=>'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+	// 	'user_id'=>3,
+	// 	'rating'=>2
+	// ]);
+	// return "Retrieve Data or Insert $article";
+
+	$article = Article::firstOrCreate(
+		[	'title'=>'this is new article 17'],
+		[
+			'description'=>'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+			'user_id'=>1,
+			'rating'=>5
+		]);
+	return "Retrieve Data or Insert $article";
+});
+
+
+Route::get('articles/filter',function(){
+	
+	// $articles = Article::all()->filter(function($article){
+	// 	return $article->id > 5;
+	// });
+
+	// $articles = Article::get()->filter(function($article){
+	// 	return $article->id > 5;
+	// });
+
+	$articles = Article::cursor()->filter(function($article){
+		return $article->id > 5;
+	});
+
+	foreach($articles as $article){
+		echo "$article->id <br/> $article->title <br/> $article->description";
+	}
+
+});
+
+
+Route::get('articles/reject',function(){
+	
+	$data = [
+		100,
+		200,
+		300,
+		0,
+		'0',
+		1,
+		'1',
+		'aung aung',
+		'',
+		' ',
+		null,
+		true,
+		false,
+		[],
+		['red','green','blue'],
+		['price'=>100]
+	];
+
+	// dd(
+	// 	$data,
+	// 	collect($data)
+	// );
+
+	$collections = collect($data);
+
+	// return $collections->reject();  // {"3":0,"4":"0","8":"","10":null,"12":false,"13":[]}  // reject not return number,string and true value.but return 0
+	
+	// return $collections->reject(function($value){
+	// 	return empty($value);  // {"0":100,"1":200,"2":300,"5":1,"6":"1","7":"aung aung","9":" ","11":true,"14":["red","green","blue"],"15":{"price":100}}
+	// });   
+
+	return $collections->filter(function($value){
+		// return $value;  // {"0":100,"1":200,"2":300,"5":1,"6":"1","7":"aung aung","9":" ","11":true,"14":["red","green","blue"],"15":{"price":100}}
+		// return empty($value);  // {"3":0,"4":"0","8":"","10":null,"12":false,"13":[]}
+		// return is_numeric($value);  // [100,200,300,0,"0",1,"1"]
+		// return is_string($value);   // {"4":"0","6":"1","7":"aung aung","8":"","9":" "}
+		// return is_bool($value);    //{"11":true,"12":false}  
+		// return is_array($value);    // {"13":[],"14":["red","green","blue"],"15":{"price":100}}
+		return is_null($value);  //{"10":null} 
+	});     
+});
+
+
+=>29/07
+
+// =>whereColumn('column1','column2');  // compare and result same value
+// =>whereColumn('column1','comparison operator','column2');  // compare and result same value
+// =>whereColumn([['column1','column2'],['column1','column2']]);  // compare and result same value
+
+
+// $articles = Article::whereColumn('id','user_id')->get();
+	// return $articles;
+
+	// $articles = Article::whereColumn('created_date','update_date')->get();
+	// return $articles;
+
+	// $articles = Article::whereColumn('update_date','>','created_date')->orderByDESC('id')->get();
+	// return $articles;
+	
+	// $articles = Article::whereColumn([
+	// 	['id','>','user_id']
+	// ])->get();
+	// return $articles;
+
+	$articles = Article::whereColumn([
+		['id','>','user_id'],
+		['created_date','updated_date']
+	])->get();
+	return $articles;
+
+
+
+
+
+
+
+
+
+-----------------
+
+=>Change Laravel Timezone
+
+config > app.php > 'timezone' => 'Asia/Yangon';
+
+Note:: php artisan config:clear
+
+-----------------

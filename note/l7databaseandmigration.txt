@@ -143,7 +143,7 @@ $table->string('city')->after('phonenumber');
 $table->dropColumn('city');
 
 php artisan migrate
-php artisan migrate:statusc
+php artisan migrate:status
 php artisan migrate:rollback --pretend
 php artisan migrate:rollback
 php artisan migrate
@@ -288,7 +288,7 @@ Schema::create('authors', function (Blueprint $table) {
         });
 
 
-Schema::create('posts', function (Blueprint $table) {
+Schema::create('types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->timestamps();
@@ -344,4 +344,62 @@ Route::get('types/read',function(){
 Route::get('types/read',function(){
     $result = DB::select("SELECT * FROM types WHERE id=?",[3]);
     return $result;
+});
+
+
+
+===16/7/2023
+
+Route::get('students/insert',function(){
+    DB::insert("INSERT INTO students(name,phonenumber,address) value (?,?,?)",['aung aung','111111','yangon']);
+    return "Insert Successfully";
+});
+
+Route::get('students/update',function(){
+    DB::update("UPDATE types SET name='pdf' WHERE id=?",[2]);
+    return "Update Successfully";
+});
+
+Route::get('shoppers/update',function(){
+    DB::update("UPDATE shoppers SET fullname=?,phonenumber=?,city=? WHERE id=?",['kyaw kyaw','22222','bago',2]);
+    return "Update Successfully";
+});
+
+
+Route::get('shoppers/delete',function(){
+    // DB::delete("DELETE FROM shoppers WHERE id=?",[3]);
+    DB::delete("DELETE FROM shoppers WHERE id=?",[2]);
+    return "Delete Successfully";
+});
+
+=CRUD
+DB::insert
+DB::select
+DB::update
+DB::delete
+
+
+=>DB::table('')->get()
+=>DB::table('')->select()->get()
+=>DB::table('')->selectRaw()->get()
+
+
+Route::get('shoppers/read',function(){
+
+    // $results = DB::select("SELECT * FROM shoppers");
+    // return $results;
+
+    // $results = DB::select("SELECT * FROM shoppers WHERE id=?",[6]);
+    // return $results;
+
+    $results = DB::table('shoppers')->get();
+    return $results;
+
+    // =>select(columns)
+    // =>selectRaw(expression)
+
+
+    // $results = DB::table('shoppers')->select('*')->get();
+    $results = DB::table('shoppers')->selectRaw('*')->get();
+    return $results;
 });
